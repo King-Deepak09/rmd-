@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forensic X | Malware Intelligence Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #0b0f16;    
+            --sidebar-bg: #0d111a;
+            --panel-bg: #111620;
+            --panel-border: rgba(255, 255, 255, 0.05);
+            --accent-cyan: #00d2ff;
+            --accent-green: #39ff14;
+            --accent-red: #ff4757;
+            --accent-orange: #ff9f43;
+            --text-main: #ffffff;
+            --text-dim: #7a8b9f;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar Navigation */
+        aside {
+            width: 250px;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--panel-border);
+            padding: 2.5rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            flex-shrink: 0;
+            z-index: 10;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 2rem;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 28px;
+            height: 28px;
+            background: var(--accent-cyan);
+            border-radius: 6px;
+            box-shadow: 0 0 15px rgba(0, 210, 255, 0.4);
+        }
+
+        .logo {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: var(--accent-cyan);
+            letter-spacing: 1px;
+            text-decoration: none;
+        }
+
+        nav {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: var(--text-dim);
+            padding: 1rem 1.2rem;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: 0.3s;
+            display: block;
+        }
+
+        nav a:hover {
+            color: var(--text-main);
+            background: rgba(255,255,255,0.02);
+        }
+
+        nav a.active {
+            background: rgba(0, 210, 255, 0.05);
+            color: var(--accent-cyan);
+            border: 1px solid rgba(0, 210, 255, 0.15);
+        }
+
+        .special-links {
+            margin-top: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .special-links a {
+            text-decoration: none;
+            padding: 0.5rem 1.2rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        .link-orange {
+            color: #ffaa00; /* yellowish orange */
+            text-transform: uppercase;
+        }
+
+        .link-presentation {
+            color: var(--text-dim);
+        }
+
+        /* Main Content Area */
+        main {
+            flex-grow: 1;
+            padding: 2.5rem 3.5rem;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2.5rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .header-title h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            letter-spacing: 0.5px;
+        }
+
+        .header-title p {
+            color: var(--accent-green);
+            font-weight: 700;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .btn-session {
+            background: rgba(255,255,255,0.02);
+            color: var(--text-dim);
+            padding: 0.6rem 1.2rem;
+            border-radius: 30px;
+            font-weight: 500;
+            font-size: 0.85rem;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        /* APK Analysis Module */
+        .scan-module {
+            background: linear-gradient(145deg, var(--panel-bg), #141a27);
+            border-radius: 20px;
+            padding: 2.5rem;
+            border: 1px solid var(--panel-border);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            margin-bottom: 2.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .scan-info {
+            flex: 1;
+        }
+
+        .scan-info h3 {
+            font-family: 'Outfit', sans-serif;
+            color: var(--text-main);
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .scan-info p {
+            color: var(--text-dim);
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .scan-action {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            background: #05070a;
+            padding: 0.5rem;
+            border-radius: 12px;
+            border: 1px dashed var(--panel-border);
+            width: 500px;
+        }
+
+        .upload-input-wrap {
+            position: relative;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.02);
+            border-radius: 8px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        
+        .upload-input-wrap:hover {
+            background: rgba(255,255,255,0.05);
+            border-color: var(--text-dim);
+        }
+
+        .upload-input-wrap input[type="file"] {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .upload-text {
+            color: var(--text-dim);
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .btn-scan {
+            background-color: var(--accent-cyan);
+            color: #000;
+            padding: 1.1rem 2rem;
+            border-radius: 8px;
+            font-weight: 800;
+            font-size: 0.9rem;
+            border: none;
+            cursor: pointer;
+            transition: 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .btn-scan:hover {
+            box-shadow: 0 0 15px rgba(0, 210, 255, 0.4);
+            transform: translateY(-2px);
+        }
+
+        /* Metrics Row */
+        .metrics-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .metric-card {
+            background-color: var(--panel-bg);
+            border-radius: 16px;
+            padding: 1.5rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.7rem;
+            border: 1px solid var(--panel-border);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        .metric-title {
+            color: var(--text-dim);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .metric-value {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+        
+        .metric-value span { font-size: 1.5rem; }
+        .metric-sub { font-size: 0.85rem; font-weight: 500; }
+
+        /* Bottom Row */
+        .bottom-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .panel {
+            background-color: var(--panel-bg);
+            border-radius: 16px;
+            padding: 2rem;
+            border: 1px solid var(--panel-border);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .panel-title {
+            color: var(--accent-cyan);
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        /* Terminal Logs */
+        .terminal-box {
+            background-color: #05070a;
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 1.2rem;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.8rem;
+            line-height: 1.8;
+            height: 250px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .log-entry { display: flex; gap: 10px; }
+        .log-time { color: #555; }
+        .log-normal { color: var(--accent-green); }
+        .log-alert { color: var(--accent-red); font-weight: bold; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+        /* Scan Results Modal Overlay */
+        .scan-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 100;
+            display: none; justify-content: center; align-items: center;
+            backdrop-filter: blur(5px);
+        }
+        .scan-result-box {
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 20px;
+            padding: 3rem;
+            width: 500px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+        .scan-result-box h2 { font-family: 'Outfit'; font-size: 2rem; margin-bottom: 1rem; }
+        .btn-close {
+            margin-top: 2rem;
+            background: transparent; border: 1px solid var(--text-dim); color: var(--text-main);
+            padding: 0.8rem 2rem; border-radius: 8px; cursor: pointer; transition: 0.3s;
+        }
+        .btn-close:hover { background: rgba(255,255,255,0.1); }
+
+        /* Additional Dynamic UI Elements */
+        .system-status-row {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr 1fr;
+            gap: 1.5rem;
+            margin-top: 2.5rem;
+        }
+
+        .resource-bar {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            height: 8px;
+            width: 100%;
+            margin-top: 8px;
+            overflow: hidden;
+            position: relative;
+        }
+        .resource-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+        .cpu-fill { background: var(--accent-cyan); width: 45%; }
+        .mem-fill { background: var(--accent-orange); width: 68%; }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 46px;
+            height: 24px;
+        }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #333; transition: .4s; border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px;
+            background-color: white; transition: .4s; border-radius: 50%;
+        }
+        input:checked + .slider { background-color: var(--accent-green); }
+        input:checked + .slider:before { transform: translateX(22px); }
+
+        .setting-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px 0; border-bottom: 1px dashed var(--panel-border);
+        }
+        .setting-item:last-child { border-bottom: none; }
+        .setting-info h4 { font-size: 0.95rem; color: var(--text-main); margin-bottom: 3px; }
+        .setting-info p { font-size: 0.8rem; color: var(--text-dim); }
+
+        .quarantine-list { list-style: none; padding: 0; margin-top: 15px;}
+        .q-item { 
+            background: rgba(255,71,87,0.05); border: 1px solid rgba(255,71,87,0.2); 
+            padding: 12px; border-radius: 10px; display: flex; justify-content: space-between; 
+            align-items: center; margin-bottom: 10px;
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .q-info h4 { color: var(--accent-red); font-size: 0.9rem; margin-bottom: 3px; }
+        .q-info p { color: var(--text-dim); font-size: 0.75rem; }
+        .q-actions button {
+            background: transparent; border: 1px solid var(--text-dim); color: var(--text-main);
+            padding: 4px 10px; border-radius: 5px; cursor: pointer; font-size: 0.75rem; margin-left: 5px;
+            transition: 0.2s;
+        }
+        .q-actions button:hover { background: rgba(255,255,255,0.1); }
+        .q-actions .btn-delete { border-color: var(--accent-red); color: var(--accent-red); }
+        .q-actions .btn-delete:hover { background: var(--accent-red); color: #fff; }
+    </style>
+</head>
+<body>
+
+    <aside>
+        <a href="#" class="logo-container">
+            <div class="logo-icon"></div>
+            <div class="logo">FORENSIC X</div>
+        </a>
+        
+        <nav>
+            <a href="#" class="active">Dashboard</a>
+            <a href="Task 2/report.html">Static Analysis</a>
+            <a href="Task 3/report.html">Dynamic Monitoring</a>
+            <a href="Task 4/report.html">Deobfuscation</a>
+            <a href="Task 5/report.html">Detection Study</a>
+            <a href="Task 6/report.html">Security Patching</a>
+        </nav>
+
+        <div class="special-links">
+            <a href="#" class="link-orange" onclick="fetchLogs()">⟳ REFRESH C2 MONITOR</a>
+            <a href="Task 1/index.html" class="link-presentation">Presentation Deck</a>
+        </div>
+    </aside>
+
+    <main>
+        <header>
+            <div class="header-title">
+                <h1>Malware Intelligence Hub</h1>
+                <p>SYSTEM MONITORING AND SCANNING ACTIVE</p>
+            </div>
+            <div class="btn-session">
+                Session ID: 64f2fb22
+            </div>
+        </header>
+
+        <!-- Dynamic APK Scan Module -->
+        <div class="scan-module">
+            <div class="scan-info">
+                <h3>🔍 Quick APK Analysis Module</h3>
+                <p>Upload an Android application packages (.apk) to scan against our active dynamic signatures and behavioral databases. Results intercept background threats in real-time.</p>
+            </div>
+            <div class="scan-action">
+                <div class="upload-input-wrap">
+                    <input type="file" id="apkUpload" accept=".apk" onchange="updateFileName()">
+                    <span class="upload-text" id="fileNameDisplay">📁 Drop or Select APK File</span>
+                </div>
+                <button class="btn-scan" onclick="performScan()" id="scanBtn">INTERNAL SCAN</button>
+            </div>
+        </div>
+
+        <div class="metrics-row">
+            <div class="metric-card">
+                <div class="metric-title">CRITICAL THREATS</div>
+                <div class="metric-value" id="countThreats">04</div>
+                <div class="metric-sub" style="color: var(--accent-red);">Detected in Scans</div>
+            </div>
+            
+            <div class="metric-card">
+                <div class="metric-title">SECURITY SCORE</div>
+                <div class="metric-value" style="color: var(--accent-red);">18<span>/100</span></div>
+                <div class="metric-sub" style="color: var(--accent-red);">Critical Risk</div>
+            </div>
+            
+            <div class="metric-card">
+                <div class="metric-title">ACTIVE CONNECTIONS</div>
+                <div class="metric-value" style="color: var(--accent-cyan);">12</div>
+                <div class="metric-sub" style="color: var(--accent-green);">Forensic Trace Active</div>
+            </div>
+            
+            <div class="metric-card">
+                <div class="metric-title">SCANS PERFORMED</div>
+                <div class="metric-value" style="color: #ffaa00;" id="countScans">86</div>
+                <div class="metric-sub" style="color: var(--accent-green);">Historical Data</div>
+            </div>
+        </div>
+
+        <div class="bottom-row">
+            <div class="panel">
+                <div class="panel-header" style="margin-bottom: 5px;">
+                    <div class="panel-title">⚠️ Live C2 Forensic Monitor</div>
+                </div>
+                <p style="color:var(--text-dim); font-size:0.85rem; margin-bottom:15px;">Real-time feed from backend forensic gateway</p>
+                <div class="terminal-box" id="log-terminal">
+                    <!-- Logs will be populated here by JS -->
+                    <div class="log-entry"><span class="log-time">[SYSTEM]</span><span class="log-normal">Initializing secure connection to backend...</span></div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">Recent Task Investigations</div>
+                </div>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr>
+                            <th style="text-align: left; padding-bottom: 10px; color: var(--text-dim); border-bottom: 1px solid var(--panel-border);">MODULE</th>
+                            <th style="text-align: right; padding-bottom: 10px; color: var(--text-dim); border-bottom: 1px solid var(--panel-border);">RISK STATUS</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td style="padding: 15px 0; border-bottom: 1px solid var(--panel-border); font-size:0.9rem;">Task 2: Static Analysis</td><td style="text-align:right; border-bottom: 1px solid var(--panel-border); color:var(--accent-red); font-weight:700;">HIGH</td></tr>
+                        <tr><td style="padding: 15px 0; border-bottom: 1px solid var(--panel-border); font-size:0.9rem;">Task 3: Dynamic Mapping</td><td style="text-align:right; border-bottom: 1px solid var(--panel-border); color:var(--accent-red); font-weight:700;">HIGH</td></tr>
+                        <tr><td style="padding: 15px 0; border-bottom: 1px solid var(--panel-border); font-size:0.9rem;">Task 4: Deobfuscation</td><td style="text-align:right; border-bottom: 1px solid var(--panel-border); color:var(--text-dim); font-weight:700;">MEDIUM</td></tr>
+                        <tr><td style="padding: 15px 0; border-bottom: 1px solid var(--panel-border); font-size:0.9rem;">Task 5: Comparative Study</td><td style="text-align:right; border-bottom: 1px solid var(--panel-border); color:var(--accent-red); font-weight:700;">HIGH</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="system-status-row">
+            <!-- Resource Usage -->
+            <div class="panel">
+                <div class="panel-header" style="margin-bottom: 15px;">
+                    <div class="panel-title">🖥️ Live System Resources</div>
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <div style="display:flex; justify-content:space-between; font-size: 0.85rem; font-weight: 600;">
+                        <span>CPU Usage (Dynamic Sandbox Load)</span> <span id="cpuText" style="color:var(--accent-cyan)">45%</span>
+                    </div>
+                    <div class="resource-bar"><div class="resource-fill cpu-fill" id="cpuBar"></div></div>
+                </div>
+                <div>
+                    <div style="display:flex; justify-content:space-between; font-size: 0.85rem; font-weight: 600;">
+                        <span>Memory Utilization (Process Mon)</span> <span id="memText" style="color:var(--accent-orange)">68%</span>
+                    </div>
+                    <div class="resource-bar"><div class="resource-fill mem-fill" id="memBar"></div></div>
+                </div>
+            </div>
+
+            <!-- Quarantine Vault -->
+            <div class="panel">
+                <div class="panel-header" style="margin-bottom: 5px;">
+                    <div class="panel-title">🛡️ Quarantine Vault</div>
+                </div>
+                <p style="color:var(--text-dim); font-size:0.8rem; margin-bottom: 10px;">Isolated threats awaiting action.</p>
+                <div style="flex-grow: 1; overflow-y: auto;">
+                    <ul class="quarantine-list" id="vaultList">
+                        <li class="q-item">
+                            <div class="q-info">
+                                <h4>Trojan.Dropper.Agent</h4>
+                                <p>Target: /system/bin/su</p>
+                            </div>
+                            <div class="q-actions">
+                                <button>Restore</button>
+                                <button class="btn-delete" onclick="this.parentElement.parentElement.remove()">Nuke</button>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Smart Settings -->
+            <div class="panel">
+                <div class="panel-header" style="margin-bottom: 10px;">
+                    <div class="panel-title">⚙️ Smart Protection</div>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h4>Real-Time URL/Web Scanner</h4>
+                        <p>Dynamic block of C2/phishing URLs</p>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h4>Cloud Intelligence DB Sync</h4>
+                        <p>Live signature updates (Auto)</p>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Scan Result Popup -->
+    <div class="scan-overlay" id="scanModal">
+        <div class="scan-result-box">
+            <h2 id="modalTitle">Scan Complete</h2>
+            <div style="margin: 1.5rem 0; font-size: 1.1rem; color: var(--text-dim);" id="modalRisk">Risk Level: Processing...</div>
+            <div style="background: #05070a; padding: 1rem; border-radius: 10px; font-family: monospace; font-size: 0.85rem; color: var(--text-main); margin-bottom: 1.5rem;" id="modalThreats">
+                Analyzing binary instructions...
+            </div>
+            <button class="btn-close" onclick="closeModal()">PULL FULL REPORT</button>
+        </div>
+    </div>
+
+    <!-- JS Logic for API interconnectivity -->
+    <script>
+        let scansCount = 86;
+        let threatsCount = 4;
+
+        function updateFileName() {
+            const input = document.getElementById('apkUpload');
+            const display = document.getElementById('fileNameDisplay');
+            if (input.files.length > 0) {
+                display.innerText = "📁 " + input.files[0].name;
+                display.style.color = "var(--accent-cyan)";
+            } else {
+                display.innerText = "📁 Drop or Select APK File";
+                display.style.color = "var(--text-dim)";
+            }
+        }
+
+        async function performScan() {
+            const input = document.getElementById('apkUpload');
+            if (input.files.length === 0) {
+                alert("Please select an APK file to scan.");
+                return;
+            }
+
+            const fileName = input.files[0].name;
+            const btn = document.getElementById('scanBtn');
+            btn.innerText = "SCANNING...";
+            btn.style.opacity = "0.7";
+
+            try {
+                // Connect to Python Backend
+                const response = await fetch('/api/scan', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ filename: fileName })
+                });
+                const data = await response.json();
+
+                // Display Result
+                document.getElementById('scanModal').style.display = "flex";
+                const mTitle = document.getElementById('modalTitle');
+                const mRisk = document.getElementById('modalRisk');
+                
+                scansCount++;
+                document.getElementById('countScans').innerText = scansCount;
+
+                if (data.risk === "HIGH" || data.risk === "CRITICAL") {
+                    mTitle.innerText = "THREAT DETECTED!";
+                    mTitle.style.color = "var(--accent-red)";
+                    mRisk.innerHTML = `Risk Level: <span style="color:var(--accent-red); font-weight:bold">${data.risk}</span>`;
+                    threatsCount++;
+                    document.getElementById('countThreats').innerText = "0" + threatsCount;
+                } else {
+                    mTitle.innerText = "NO THREAT FOUND";
+                    mTitle.style.color = "var(--accent-green)";
+                    mRisk.innerHTML = `Risk Level: <span style="color:var(--accent-green); font-weight:bold">${data.risk}</span>`;
+                }
+
+                document.getElementById('modalThreats').innerText = "Identified: " + data.threats + "\nPermissions: " + data.permissions;
+
+                // refresh logs
+                fetchLogs();
+
+            } catch (err) {
+                console.error(err);
+                alert("Failed to connect to Forensic Backend Server.");
+            }
+
+            btn.innerText = "INTERNAL SCAN";
+            btn.style.opacity = "1";
+        }
+
+        function closeModal() {
+            document.getElementById('scanModal').style.display = "none";
+        }
+
+        async function fetchLogs() {
+            try {
+                const response = await fetch('/api/logs');
+                const logs = await response.json();
+                const term = document.getElementById('log-terminal');
+                term.innerHTML = '';
+                
+                if (logs.length === 0) {
+                    term.innerHTML = '<div class="log-entry"><span class="log-time">[SYSTEM]</span><span class="log-normal">No logs available in database.</span></div>';
+                    return;
+                }
+
+                logs.forEach(l => {
+                    const timeC = `<span class="log-time">[${l.timestamp}]</span>`;
+                    const msgC = l.is_alert 
+                        ? `<span class="log-alert">${l.ip}: ${l.activity}</span>`
+                        : `<span class="log-normal">${l.ip}: ${l.activity}</span>`;
+                    term.innerHTML += `<div class="log-entry">${timeC} ${msgC}</div>`;
+                });
+            } catch (err) {
+                console.log("Could not fetch logs automatically.");
+            }
+        }
+
+        // Auto load logs on mount
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchLogs();
+            setInterval(fetchLogs, 5000); // refresh every 5s
+            
+            // Simulate Dynamic Resource Usage
+            setInterval(() => {
+                const cpu = Math.floor(Math.random() * 20) + 30; // 30-50%
+                const mem = Math.floor(Math.random() * 10) + 65; // 65-75%
+                document.getElementById('cpuBar').style.width = cpu + '%';
+                document.getElementById('cpuText').innerText = cpu + '%';
+                document.getElementById('memBar').style.width = mem + '%';
+                document.getElementById('memText').innerText = mem + '%';
+            }, 3000);
+        });
+    </script>
+</body>
+</html>
